@@ -145,7 +145,7 @@ async function callapi(url, pt, headers, body) {
         return result
     } catch (e) {
         console.log('calll api loi r')
-       return false
+        return false
     }
 
 }
@@ -190,6 +190,7 @@ async function getToken() {
 
 async function test(bot) {
     let timeout = 1000
+    console.log('bat dau cahy')
 
     try {
         const url = new URL(
@@ -221,7 +222,7 @@ async function test(bot) {
             if (timeToWait > 30) {
                 //  gọi hàm đặt cược
 
-              
+
                 await check_dk(data.id, bot)
             }
             if (timeToWait > 0) {
@@ -693,11 +694,11 @@ Chúc anh chị chơi game vui vẻ </b>`, { parse_mode: 'HTML' })
 //  1 đã chọn ct
 //  2L1N
 let tk_hethong
-
-exports.runbot = async function (bot) {
+async function vaolenhtaikhoan(bot) {
     // https://82vn82vnapi.com/api/webapi/GetGameIssueList
     //     type: 1
     // language: vi
+    let tao_api = false
 
     try {
         let body = {
@@ -711,11 +712,49 @@ exports.runbot = async function (bot) {
         tk_hethong = await callapi('https://88lotte.com/api/login', 'post', headers, body)
         if (tk_hethong) {
             token = tk_hethong.access_token
+            tao_api = true
             test(bot)
         }
     } catch (e) {
         console.log("runbot err", e)
 
+    }
+    if (!tao_api) {
+        setTimeout(function () {
+            vaolenhtaikhoan(bot)
+        }, 30000);
+    }
+
+}
+exports.runbot = async function (bot) {
+    // https://82vn82vnapi.com/api/webapi/GetGameIssueList
+    //     type: 1
+    // language: vi
+    let tao_api = false
+
+    try {
+        let body = {
+            "username": "0991455506",
+            "password": "111222"
+        };
+        let headers = {
+            "Content-Type": "application/json",
+            "Accept": "application/json"
+        }
+        tk_hethong = await callapi('https://88lotte.com/api/login', 'post', headers, body)
+        if (tk_hethong) {
+            token = tk_hethong.access_token
+            tao_api = true
+            test(bot)
+        }
+    } catch (e) {
+        console.log("runbot err", e)
+
+    }
+    if (!tao_api) {
+        setTimeout(function () {
+            vaolenhtaikhoan(bot)
+        }, 30000);
     }
 
 }
