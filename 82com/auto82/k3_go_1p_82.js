@@ -760,144 +760,144 @@ exports.runbot = async function (bot) {
 }
 
 
-async function vaolenhtaikhoan(item, element, issuenumber, bot) {
-    let dangnhaplai = ""
-    try {
-        let last = element.slice(element.length - 1, element.length)
-        let chienluoc_von = item.chienluoc.split(',')
-        if (!data_bet[item.usersname]) {
-            data_bet[item.usersname] = 0
-        }
-        let body = {
-            amount: 1000,
-            betCount: Math.round(parseInt(chienluoc_von[data_bet[item.usersname]]) / 1000),
-            gameType: "2",
-            issuenumber: issuenumber,
-            language: 2,
-            random: It(),
-            // selectType: "H",
-            // signature: "7BC422BC2894CF55EC1B5056292A5D12",
-            timestamp: getTime_now(),
-            typeId: 9
-        }
-        let data = {
-            uid: item.UserId,
-            sign: item.Sign,
-            gametype: 6,
-            typeId: 9,
-            language: "vi",
-            amount: "1000",
-            betcount: Math.round(parseInt(chienluoc_von[data_bet[item.usersname]]) / 1000),
-            issuenumber: issuenumber
+// async function vaolenhtaikhoan(item, element, issuenumber, bot) {
+//     let dangnhaplai = ""
+//     try {
+//         let last = element.slice(element.length - 1, element.length)
+//         let chienluoc_von = item.chienluoc.split(',')
+//         if (!data_bet[item.usersname]) {
+//             data_bet[item.usersname] = 0
+//         }
+//         let body = {
+//             amount: 1000,
+//             betCount: Math.round(parseInt(chienluoc_von[data_bet[item.usersname]]) / 1000),
+//             gameType: "2",
+//             issuenumber: issuenumber,
+//             language: 2,
+//             random: It(),
+//             // selectType: "H",
+//             // signature: "7BC422BC2894CF55EC1B5056292A5D12",
+//             timestamp: getTime_now(),
+//             typeId: 9
+//         }
+//         let data = {
+//             uid: item.UserId,
+//             sign: item.Sign,
+//             gametype: 6,
+//             typeId: 9,
+//             language: "vi",
+//             amount: "1000",
+//             betcount: Math.round(parseInt(chienluoc_von[data_bet[item.usersname]]) / 1000),
+//             issuenumber: issuenumber
 
-        }
+//         }
 
-        if (last == "N") {
-            if (item.cainguoc == 'on') {
-                body.selectType = "H"
-            } else {
-                body.selectType = "L"
-            }
+//         if (last == "N") {
+//             if (item.cainguoc == 'on') {
+//                 body.selectType = "H"
+//             } else {
+//                 body.selectType = "L"
+//             }
 
-        } else {
-            if (item.cainguoc == 'on') {
-                body.selectType = "L"
-            } else {
-                body.selectType = "H"
-            }
+//         } else {
+//             if (item.cainguoc == 'on') {
+//                 body.selectType = "L"
+//             } else {
+//                 body.selectType = "H"
+//             }
 
-        }
+//         }
 
-        let result
+//         let result
 
-        let signature = getsignature(body)
-        body.signature = signature
+//         let signature = getsignature(body)
+//         body.signature = signature
 
-        if (body.betCount >= 1) {
-            result = await axios.post("https://82vn82vnapi.com/api/webapi/K3GameBetting", body, {
-                headers: {
-                    'content-type': 'application/json;charset=UTF-8',
-                    'Authorization': `Bearer ${item.Sign}`,
-                    'User-Agent': userAgent
-                },
-            })
+//         if (body.betCount >= 1) {
+//             result = await axios.post("https://82vn82vnapi.com/api/webapi/K3GameBetting", body, {
+//                 headers: {
+//                     'content-type': 'application/json;charset=UTF-8',
+//                     'Authorization': `Bearer ${item.Sign}`,
+//                     'User-Agent': userAgent
+//                 },
+//             })
 
-        } else {
-            result = {
-                data: {
-                    code: 0,
-                    data: [],
-                    success: true,
-                    msg: 'Bet success'
-                }
-            }
-        }
-        if (result.data) {
+//         } else {
+//             result = {
+//                 data: {
+//                     code: 0,
+//                     data: [],
+//                     success: true,
+//                     msg: 'Bet success'
+//                 }
+//             }
+//         }
+//         if (result.data) {
 
-            if (result.data && result.data.msg == 'Bet success' && result.data.code == 0) {
-                if (bonhotam[issuenumber]) {
-                    body.id = item.id
-                    body.token = item.Sign
-                    body.refreshToken = item.refreshToken
-                    body.chatId = item.tele_id
-                    body.usersname = item.usersname
-                    body.lodung = item.lodung
-                    body.loidung = item.loidung
-                    body.caidca = item.caidca
-                    body.chienluoc_von = chienluoc_von
-                    bonhotam[issuenumber].push(body)
-                } else {
-                    body.id = item.id
-                    body.token = item.Sign
-                    body.refreshToken = item.refreshToken
-                    body.chatId = item.tele_id
-                    body.usersname = item.usersname
-                    body.lodung = item.lodung
-                    body.loidung = item.loidung
-                    body.caidca = item.caidca
-                    body.chienluoc_von = chienluoc_von
-                    bonhotam[issuenumber] = [body]
-                }
+//             if (result.data && result.data.msg == 'Bet success' && result.data.code == 0) {
+//                 if (bonhotam[issuenumber]) {
+//                     body.id = item.id
+//                     body.token = item.Sign
+//                     body.refreshToken = item.refreshToken
+//                     body.chatId = item.tele_id
+//                     body.usersname = item.usersname
+//                     body.lodung = item.lodung
+//                     body.loidung = item.loidung
+//                     body.caidca = item.caidca
+//                     body.chienluoc_von = chienluoc_von
+//                     bonhotam[issuenumber].push(body)
+//                 } else {
+//                     body.id = item.id
+//                     body.token = item.Sign
+//                     body.refreshToken = item.refreshToken
+//                     body.chatId = item.tele_id
+//                     body.usersname = item.usersname
+//                     body.lodung = item.lodung
+//                     body.loidung = item.loidung
+//                     body.caidca = item.caidca
+//                     body.chienluoc_von = chienluoc_von
+//                     bonhotam[issuenumber] = [body]
+//                 }
 
-                if (data_tong_tien_cuoc[item.usersname]) {
-                    data_tong_tien_cuoc[item.usersname] = data_tong_tien_cuoc[item.usersname] + body.betCount;
-                } else {
-                    data_tong_tien_cuoc[item.usersname] = body.betCount;
-                }
+//                 if (data_tong_tien_cuoc[item.usersname]) {
+//                     data_tong_tien_cuoc[item.usersname] = data_tong_tien_cuoc[item.usersname] + body.betCount;
+//                 } else {
+//                     data_tong_tien_cuoc[item.usersname] = body.betCount;
+//                 }
 
-                bot.sendMessage(item.tele_id, `✅ Đã đặt cược K3-GO 1 ${body.selectType == "H" ? "Lớn" : "Nhỏ"} - ${body.betCount}000đ - Kỳ xổ ${issuenumber}`,)
-            } else {
-                //  đặt cược lỗi
-                let msg = result.data.msg
-                if (msg == "Balance is not enough") {
-                    await db(table).update('k3go1', 0).where('id', item.id)
-
-
-                }
+//                 bot.sendMessage(item.tele_id, `✅ Đã đặt cược K3-GO 1 ${body.selectType == "H" ? "Lớn" : "Nhỏ"} - ${body.betCount}000đ - Kỳ xổ ${issuenumber}`,)
+//             } else {
+//                 //  đặt cược lỗi
+//                 let msg = result.data.msg
+//                 if (msg == "Balance is not enough") {
+//                     await db(table).update('k3go1', 0).where('id', item.id)
 
 
-            }
-        }
-
-    } catch (error) {
-        if (error && error.response && error.response.data && error.response.data.msg == "No operation permission") {
-            // 
-            let check = await getInfor(item.Sign, item.refreshToken, item.usersname)
-            if (!check || !check.status) {
-                await db(table).update('status', 3).where('usersname', item.usersname)
-                return bot.sendMessage(item.tele_id, `❌ Dừng copy vì lý do: Tài khoản đã đăng xuất
-            Kỳ này: ${issuenumber}`)
-            }
-
-        }
-        console.log("loi vao lenh ko duoc ")
-    }
+//                 }
 
 
+//             }
+//         }
+
+//     } catch (error) {
+//         if (error && error.response && error.response.data && error.response.data.msg == "No operation permission") {
+//             // 
+//             let check = await getInfor(item.Sign, item.refreshToken, item.usersname)
+//             if (!check || !check.status) {
+//                 await db(table).update('status', 3).where('usersname', item.usersname)
+//                 return bot.sendMessage(item.tele_id, `❌ Dừng copy vì lý do: Tài khoản đã đăng xuất
+//             Kỳ này: ${issuenumber}`)
+//             }
+
+//         }
+//         console.log("loi vao lenh ko duoc ")
+//     }
 
 
 
-}
+
+
+// }
 function delay(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
 }
