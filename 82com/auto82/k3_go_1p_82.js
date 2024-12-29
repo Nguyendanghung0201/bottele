@@ -144,7 +144,7 @@ async function callapi(url, pt, headers, body) {
 
         return result
     } catch (e) {
-        console.log('calll api loi r')
+        console.log('calll api loi r ',e)
         return false
     }
 
