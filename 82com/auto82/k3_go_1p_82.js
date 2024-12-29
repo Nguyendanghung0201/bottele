@@ -1,8 +1,8 @@
 const db = require('../db/db');
 const axios = require('axios')
-const md5 = require('md5');
+
 axios.defaults.timeout = 14000;
-var randomstring = require("randomstring");
+
 
 let table = "users_telegram_k3go"
 
