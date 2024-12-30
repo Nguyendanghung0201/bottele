@@ -12,13 +12,9 @@ let body = {
     "password": "111222"
 };
 
-fetch(url, {
-    method: "POST",
-    headers,
-    body: JSON.stringify(body),
-}).then(response => response.json())
-.then(data=>{
-    console.log('data ',data)
-}).catch(e=>{
-    console.log('loi ',e)
-})
+fetch('http://worldtimeapi.org/api/timezone/Etc/UTC')
+  .then(response => response.json())
+  .then(data => {
+    console.log("Thời gian hiện tại:", data.datetime);
+  })
+  .catch(error => console.error("Lỗi:", error));
