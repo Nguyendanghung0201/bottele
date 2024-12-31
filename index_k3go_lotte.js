@@ -4,7 +4,7 @@ const TelegramBot = require('node-telegram-bot-api');
 // replace the value below with the Telegram token you receive from @BotFather
  const K3_go_1p = require("./82com/auto82/k3_go_1p_82");
 
-const token = '7781678017:AAG6VGfSOy73KzsSu_mWZ8lcf2H6hSJM7DY';
+const token = '7544129855:AAEhJFgaNCWoK6zV2z82u_9kw4ezduQbgqI';
 const adminGroup = require('./82com/admingroup_82');
 console.log(" ------------------- bắt đầu bot K3GO 88lotte---------------------------")
 // Create a bot that uses 'polling' to fetch new updates

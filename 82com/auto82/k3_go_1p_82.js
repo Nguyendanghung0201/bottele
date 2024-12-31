@@ -2,7 +2,7 @@ const db = require('../db/db');
 const axios = require('axios')
 
 axios.defaults.timeout = 14000;
-
+const md5 = require('md5');
 
 let table = "users_telegram_k3go"
 
@@ -48,62 +48,7 @@ function getCurrentTime() {
 
     return currentTimeHanoi;
 }
-async function tonghopphien(data_copy, gay, tim_kiem, tinhieu, bot) {
-    try {
-        let list = await db("lichsu_ma_group").select('*').where("session", tim_kiem.session)
-        let lo = 0
-        let lai = 0
-        for (let item of list) {
 
-            if (item.dudoan == item.xoso) {
-                lai = lai + item.betcount
-            } else {
-                lo = lo + item.betcount
-            }
-        }
-        let currentTime = getCurrentTime();
-
-        await db("lichsu_tong_hop").insert({
-            group_id: data_copy.id_group,
-            sophien: list.length,
-            lo: lo,
-            lai: lai,
-            session: tim_kiem.session,
-            type: 'k3go1',
-            "currentTime": currentTime
-        })
-        let sophien = data_copy.sophien ? data_copy.sophien : 50;
-        let result = await db("lichsu_tong_hop").select('*')
-            .where('group_id', data_copy.id_group).andWhere("type", 'k3go1')
-            .orderBy('id', 'desc')
-            .paginate({ perPage: sophien, currentPage: 1 });
-        let list_send = result.data
-        let total = result.pagination.total
-
-        let text = `❇️ 𝐓𝐡ố𝐧𝐠 𝐤ê ${list_send.length} 𝐩𝐡𝐢ê𝐧 𝐠ầ𝐧 𝐧𝐡ấ𝐭  ....
-    
-`;
-        let sophien_ban_dau = total - list_send.length + 1
-        for (let item of list_send.reverse()) {
-
-            let soduong = Math.round((item.lai * 0.96 - item.lo) * 100) / 100
-
-            text = text + `🕗 ${item.currentTime}: Phiên ${sophien_ban_dau} -${soduong > 0 ? " -THẮNG 🟢" : "THUA 🟡"}  ${soduong}\n`
-            sophien_ban_dau = sophien_ban_dau + 1
-        }
-
-        text = text + `
-    
-    ${data_copy.datatext}`
-
-        bot.sendMessage(data_copy.id_group, text, {
-            parse_mode: "HTML"
-        })
-    } catch (e) {
-        console.log('tonghopphien err : ', e)
-    }
-
-}
 
 
 function getTime_now() {
@@ -117,6 +62,7 @@ function getTime_now() {
     return timestamp
 }
 let token = "";
+let refreshToken = ""
 
 async function callapi(url, pt, headers, body) {
     try {
@@ -144,48 +90,44 @@ async function callapi(url, pt, headers, body) {
 
         return result
     } catch (e) {
-        console.log('calll api loi r ',e)
+        console.log('calll api loi r ', e)
         return false
     }
 
 }
 
 async function getToken() {
-    let resher = true
+
+    let body = {
+        username: "84965423658",
+        pwd: "veso9999",
+        phonetype: -1,
+        language: 2,
+        random: It(),
+        timestamp: getTime_now(),
+        logintype: "mobile",
+    }
+    let signature = getsignature(body)
+    body.signature = signature
     try {
-        let body = {
-            "username": "0991455506",
-            "password": "111222"
-        };
-        const headers = {
-            "Content-Type": "application/json",
-            "Accept": "application/json",
-            "Authorization": "Bearer " + token,
-        };
-        tk_hethong = await callapi("https://88lotte.com/api/token/refresh", 'get', headers, body)
-        if (tk_hethong && tk_hethong.access_token) {
-            token = tk_hethong.access_token
+
+        let headers = {
+            'content-type': 'application/json;charset=UTF-8',
+            'User-Agent': userAgent
+        }
+        data = await callapi('https://api.ngrbet.com/api/webapi/Login', 'post', headers, body)
+        if (data.data && data.data.code == 0) {
+
+            token = data.data.data.token;
+            refreshToken = data.data.data.refreshToken;
+
+
         }
     } catch (e) {
+        console.log("runbot err", e)
 
-        resher = false
     }
 
-    if (resher == false) {
-        let body = {
-            "username": "0991455506",
-            "password": "111222"
-        };
-        const headers = {
-            "Content-Type": "application/json",
-            "Accept": "application/json",
-
-        };
-        tk_hethong = await callapi("https://88lotte.com/api/login", 'post', headers, body)
-        if (tk_hethong && tk_hethong.access_token) {
-            token = tk_hethong.access_token
-        }
-    }
 }
 
 async function test(bot) {
@@ -193,63 +135,83 @@ async function test(bot) {
     console.log('bat dau cahy')
 
     try {
-        const url = new URL(
-            "https://88lotte.com/api/game/current/k3"
-        );
+        const url = "https://api.ngrbet.com/api/webapi/GetGameK3Issue";
 
-        const params = {
-            "type": 1,
+        let body = {
+            typeId: 9,
+            language: 2,
+            random: It(),
+            timestamp: getTime_now(),
+
         }
+        let signature = getsignature(body)
+        body.signature = signature
 
-        Object.keys(params)
-            .forEach(key => url.searchParams.append(key, params[key]));
-        let pt = "get"
 
+
+        let pt = "post"
         const headers = {
-            "Content-Type": "application/json",
-            "Accept": "application/json",
-            "Authorization": "Bearer " + token,
+            'content-type': 'application/json;charset=UTF-8',
+            'Authorization': `Bearer ${token}`,
+            'User-Agent': userAgent
         };
 
-        let data = await callapi(url, pt, headers, {})
+
+        let data = await callapi(url, pt, headers, body)
 
 
-        if (data && data.id) {
+        if (data.data && data.data.code == 0) {
+            let datalist = data.data.data
 
-            const timeToWait = data.time_remaining;
+
+            // runAtFutureTime(data_5phut.EndTime, data_5phut.ServiceTime, data_5phut.IssueNumber, bot);
+
+            let time = datalist.startTime
+            let timestamp_start = new Date(time).getTime();
+
+            let EndTime = timestamp_start + 60000
+            let ServiceTime = new Date(datalist.serviceTime).getTime();
 
 
-            if (timeToWait > 30) {
+            const timeToWait = EndTime - ServiceTime;
+
+            if (timeToWait > 4000) {
                 //  gọi hàm đặt cược
 
 
-                await check_dk(data.id, bot)
+                await check_dk(datalist.issueNumber, bot)
             }
             if (timeToWait > 0) {
 
                 // Sử dụng setTimeout để đợi đến thời gian cụ thể
-                timeout = timeToWait * 1000 + 3000
+                timeout = timeToWait + 3000
 
             } else {
                 // Nếu timestamp đã qua, bạn có thể xử lý ở đây nếu cần
                 timeout = 1000
             }
         } else {
-            getToken()
+            if (data.data && data.data.code == 4 && data.data.msg == "No operation permission") {
+                getToken()
+                timeout = 5000
+            } else {
+                timeout = 60000
+            }
 
-            timeout = 30000
+
         }
     } catch (error) {
-        console.log('call api err')
-        getToken()
-
-        timeout = 30000
+        if (error && error.response && error.response.data && error.response.data.msg == "No operation permission") {
+            getToken()
+        }
+        timeout = 5000
 
     }
-
+    first_time = true
     setTimeout(function () {
         test(bot)
     }, timeout);
+
 
 }
 
@@ -268,7 +230,7 @@ async function guitinnhantunggroup(gameslist, bot, total, issuenumber) {
         if (data_group_cu[group.id_group]) {
             for (let game of gameslist) {
 
-                if (data_group_cu[group.id_group] && data_group_cu[group.id_group].issure == game.id) {
+                if (data_group_cu[group.id_group] && data_group_cu[group.id_group].issure == game.issueNumber) {
                     // "index": chienluocvon_index,
                     // "issure": issuenumber,
                     // data_group_cu[group.id_group].issure == game.id
@@ -276,8 +238,8 @@ async function guitinnhantunggroup(gameslist, bot, total, issuenumber) {
                     // "dudoan": last
                     // soluong: 12
                     let el = data_group_cu[group.id_group]
-                    let ketqua = game.game_result[1] == "Nhỏ" ? "N" : 'L'
-                    let ketqua2 = game.game_result[2] == "Lẻ" ? "O" : 'C'
+                    let ketqua = game.sumCount < 10 ? "L" : 'N'
+                    let ketqua2 = game.sumCount % 2 == 0 ? "C" : 'O'
                     if (el.dudoan != ketqua && el.dudoan != ketqua2) {
                         if (data_group_cu_loinhuan[group.id_group]) {
                             data_group_cu_loinhuan[group.id_group] = data_group_cu_loinhuan[group.id_group] - el.amount
@@ -542,27 +504,32 @@ function isTimeExceeded(time) {
 async function check_dk(issuenumber, bot) {
 
     try {
-        let url = new URL(
-            "https://88lotte.com/api/game/history/k3"
-        );
+        let list = []
+        let body = {
+            language: 2,
+            pageNo: 1,
+            pageSize: 10,
+            random: It(),
 
-        let params = {
-            "page": "1",
-            "type": "1",
-        };
-        let pt = "get"
-        Object.keys(params)
-            .forEach(key => url.searchParams.append(key, params[key]));
-        let headers = {
-            "Content-Type": "application/json",
-            "Accept": "application/json",
-            "Authorization": "Bearer " + token,
-        };
+            timestamp: getTime_now(),
+            typeId: 9
+        }
+        let signature = getsignature(body)
+        body.signature = signature
 
-        let list_lich_su = await callapi(url, pt, headers, {})
+        let list_lich_su = await axios.post("https://api.ngrbet.com/api/webapi/GetK3NoaverageEmerdList", body, {
+            headers: {
+                'content-type': 'application/json;charset=UTF-8',
+                'Authorization': `Bearer ${token}`,
+                'User-Agent': userAgent
+            },
+        })
+
+        // let list_lich_su = await callapi(url, pt, headers, {})
 
 
-        if (list_lich_su && list_lich_su.listItems && list_lich_su.listItems.length !== 0) {
+        if (list_lich_su.data && list_lich_su.data.data && list_lich_su.data.code == 0) {
+            let gameslist = list_lich_su.data.data.list;
 
             let list_group = await db('copytinhieu_k3g88').select('*').where('type', '1').andWhere("start", 2)
             for (let el of list_group) {
@@ -592,14 +559,14 @@ Chúc anh chị chơi game vui vẻ </b>`, { parse_mode: 'HTML' })
                 }
 
             }
-            let total = await xacdinhlichsu(list_lich_su.listItems, bot)
-            guitinnhantunggroup(list_lich_su.listItems, bot, total, issuenumber)
+            let total = await xacdinhlichsu(gameslist, bot)
+            guitinnhantunggroup(gameslist, bot, total, issuenumber)
             // let trybonhotam = await db('bonhotam').select('*').where('issuenumber', issuenumber).andWhere('type', 'k3go1').andWhere("status", 1).first()
             // if (trybonhotam) {
             //     return
             // }
             /*
-
+ 
             list = await db(table).select("*")
                 .where("status", 1)
                 .andWhere('chienluoc_id', '<>', 0)
@@ -608,7 +575,7 @@ Chúc anh chị chơi game vui vẻ </b>`, { parse_mode: 'HTML' })
                 .andWhere("chienluoc", "<>", "NONE")
                 .andWhere("activeacc", 1)
             //  .where('status_trade', 1)
-
+ 
             let list2 = await db(table).select("*")
                 .where("status", 1)
                 .andWhere('coppy', "on")
@@ -617,7 +584,7 @@ Chúc anh chị chơi game vui vẻ </b>`, { parse_mode: 'HTML' })
                 .andWhere("chienluoc", "<>", "NONE")
                 .andWhere("chienluocdata", "NONE")
                 .andWhere("activeacc", 1)
-
+ 
             let data_copy = await db('copytinhieu_k3go').select('*').where('status', 1).andWhere("type", "1").first()
             if (data_copy) {
                 let list_copy = list2.map(e => {
@@ -629,20 +596,20 @@ Chúc anh chị chơi game vui vẻ </b>`, { parse_mode: 'HTML' })
                 })
                 list = list.concat(list_copy)
             }
-
-
-
+ 
+ 
+ 
             await delay(1000)
             for (let item of list) {
-
+ 
                 let json = JSON.parse(item.chienluocdata)
-
+ 
                 for (let element of json) {
                     // 3L_N  2L2N_N
                     let check = element.slice(0, element.length - 2);
-
+ 
                     let check2 = total.slice(0, check.length);
-
+ 
                     if (check === check2) {
                         //  đúng dk
                         // vào lệnh
@@ -651,7 +618,7 @@ Chúc anh chị chơi game vui vẻ </b>`, { parse_mode: 'HTML' })
                     }
                     //   9359237.64 :9359237.64 9349237.64
                 }
-
+ 
             }
             */
 
@@ -699,19 +666,28 @@ async function vaolenhtaikhoan(bot) {
     //     type: 1
     // language: vi
     let tao_api = false
-
+    let body = {
+        username: "84965423658",
+        pwd: "veso9999",
+        phonetype: -1,
+        language: 2,
+        random: It(),
+        timestamp: getTime_now(),
+        logintype: "mobile",
+    }
+    let signature = getsignature(body)
+    body.signature = signature
     try {
-        let body = {
-            "username": "0991455506",
-            "password": "111222"
-        };
+
         let headers = {
-            "Content-Type": "application/json",
-            "Accept": "application/json"
+            'content-type': 'application/json;charset=UTF-8',
+            'User-Agent': userAgent
         }
-        tk_hethong = await callapi('https://88lotte.com/api/login', 'post', headers, body)
-        if (tk_hethong) {
-            token = tk_hethong.access_token
+        data = await callapi('https://api.ngrbet.com/api/webapi/Login', 'post', headers, body)
+        if (data.data && data.data.code == 0) {
+
+            token = data.data.data.token;
+            refreshToken = data.data.data.refreshToken;
             tao_api = true
             test(bot)
         }
@@ -726,24 +702,80 @@ async function vaolenhtaikhoan(bot) {
     }
 
 }
+function It() {
+    // Thực hiện logic để tạo giá trị ngẫu nhiên
+    // (Thông tin chi tiết không được cung cấp)
+    // ...
+
+    // Giả sử return một giá trị ngẫu nhiên
+    return "xxxxxxxxxxxx4xxxyxxxxxxxxxxxxxxx".replace(/[xy]/g, function (c) {
+        var r = Math.random() * 16 | 0,
+            v = c === "x" ? r : (r & 3 | 8); // r & 3 | 8 ensures that the character is one of "8", "9", "a", or "b"
+        return v.toString(16);
+    });
+}
+function getTime_now() {
+    const currentTime = new Date();
+
+    // Thêm 7 giờ (7 * 60 * 60 * 1000 milliseconds) để có múi giờ +7
+    const adjustedTime = new Date(currentTime.getTime() + 7 * 60 * 60 * 1000);
+
+    // Lấy timestamp từ đối tượng Date
+    const timestamp = Math.floor(adjustedTime.getTime() / 1000);
+    return timestamp
+}
+function getsignature(data) {
+    let data_filter = {}
+    const c = ["signature", "track", "xosoBettingData", "timestamp"];
+    for (let el of Object.keys(data).sort()) {
+        if (data_filter[el] !== null && data_filter[el] !== "" && !c.includes(el)) {
+
+            data_filter[el] = data[el]
+        }
+    }
+    let sigture = rs(JSON.stringify(data_filter));
+    return sigture
+
+}
+function rs(input) {
+    // Thực hiện logic để tạo chữ ký từ chuỗi đầu vào
+    // (Thông tin chi tiết không được cung cấp)
+    // ...
+    const md5Hash = md5(input);
+    // Giả sử return một giá trị chữ ký
+    const signature = md5Hash.toUpperCase().slice(0, 32);
+
+    // Trả về chữ ký đã tạo\
+
+    return signature;
+}
 exports.runbot = async function (bot) {
     // https://82vn82vnapi.com/api/webapi/GetGameIssueList
     //     type: 1
-    // language: vi
-    let tao_api = false
 
+    let tao_api = false
+    let body = {
+        username: "84965423658",
+        pwd: "veso9999",
+        phonetype: -1,
+        language: 2,
+        random: It(),
+        timestamp: getTime_now(),
+        logintype: "mobile",
+    }
+    let signature = getsignature(body)
+    body.signature = signature
     try {
-        let body = {
-            "username": "0991455507",
-            "password": "111222"
-        };
+
         let headers = {
-            "Content-Type": "application/json",
-            "Accept": "application/json"
+            'content-type': 'application/json;charset=UTF-8',
+            'User-Agent': userAgent
         }
-        tk_hethong = await callapi('https://88lotte.com/api/login', 'post', headers, body)
-        if (tk_hethong) {
-            token = tk_hethong.access_token
+        data = await callapi('https://api.ngrbet.com/api/webapi/Login', 'post', headers, body)
+        if (data.data && data.data.code == 0) {
+
+            token = data.data.data.token;
+            refreshToken = data.data.data.refreshToken;
             tao_api = true
             test(bot)
         }
@@ -1043,30 +1075,38 @@ async function xacdinhlichsu(gameslist, bot) {
     let total2 = "";
     let total3 = "";
     let first = true
-    for (let item of gameslist) {
-        let Number_one = parseInt(item.game_result[0])
-        // if (!bonhotam[item.id]) {
-        //     let trybonhotam = await db('bonhotam').select('*').where('issuenumber', item.id).andWhere('type', 'k3go1').andWhere("status", 1).first()
-        //     if (trybonhotam) {
-        //         bonhotam[trybonhotam.issuenumber] = JSON.parse(trybonhotam.data)
-        //     }
-        // }
-        let ketqua = item.game_result[1] == "Nhỏ" ? "N" : 'L'
-        let ketqua2 = item.game_result[2] == "Lẻ" ? "O" : 'C'
-        // if (bonhotam[item.id] && bonhotam[item.id].length > 0) {
 
-        //     await ketqua_run_bot(ketqua, item, bot, Number_one)
-        // }
+    for (let item of gameslist) {
+        let Number_one = parseInt(item.sumCount)
+
+        let ketqua = ""
+
+        if (Number_one % 2 == 0) {
+            //  số lớn
+            ketqua = "C"
+
+        } else {
+            //  số nhỏ
+            ketqua = "O"
+        }
+        let ketqua2 = ""
+
+        if (Number_one > 10) {
+            //  số lớn
+            ketqua = "L"
+
+        } else {
+            //  số nhỏ
+            ketqua = "N"
+        }
         total = total + ketqua;
         total2 = total2 + ketqua2;
         if (first) {
             first = false
-            total3 = "" + item.game_result[0].toString()
+            total3 = "" + Number_one.toString()
         } else {
-            total3 = total3 + "-" + item.game_result[0]
+            total3 = total3 + "-" + Number_one
         }
-
-
     }
 
     return {
