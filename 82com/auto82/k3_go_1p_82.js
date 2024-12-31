@@ -313,9 +313,9 @@ Cảm ơn các bạn đã theo dõi !</b>`, { parse_mode: 'HTML' })
                 //  2 reset về rank
 
                 if (current_cl == 10) {
-                    data_index[group.id_group] = 0
+                    // data_index[group.id_group] = 0
                     await db("copytinhieu_k3g88").update('chienluoc_hientai', 1).where('id', group.id)
-                    delete data_index[group.id_group]
+                    // delete data_index[group.id_group]
                     delete data_group_cu[group.id_group]
                     break
                 }
@@ -325,7 +325,7 @@ Cảm ơn các bạn đã theo dõi !</b>`, { parse_mode: 'HTML' })
                 if (!group[keymoi] || group[keymoi] == "NONE") {
                     //  chưa cài
                     await db("copytinhieu_k3g88").update('chienluoc_hientai', 1).where('id', group.id)
-                    delete data_index[group.id_group]
+                    // delete data_index[group.id_group]
                     delete data_group_cu[group.id_group]
                     break
 
