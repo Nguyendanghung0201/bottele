@@ -337,15 +337,15 @@ Cảm ơn các bạn đã theo dõi !</b>`, { parse_mode: 'HTML' })
 
             }
             //     kiểm tra xem có trúng ko
-            console.log('chienluoc ', chienluoc)
+            console.log('chienluoc ', chienluoc ,total)
 
             for (let element of chienluoc) {
                 // 3L_N  2L2N_N
                 console.log('kakkak222 ', element)
                 let check = element.slice(0, element.length - 2);
 
-                let check2 = total.total.slice(0, check.length);
-                let check3 = total.total2.slice(0, check.length);
+                let check2 = total.total.slice(0, check.length);  // chẵn lẻ
+                let check3 = total.total2.slice(0, check.length);  // lớn nhỏ
                 let check4 = total.total3.slice(0, check.length);
 
                 if (data_index[group.id_group]) {
@@ -357,7 +357,7 @@ Cảm ơn các bạn đã theo dõi !</b>`, { parse_mode: 'HTML' })
                 console.log('kakkak ', element)
 
                 let soluong = Number(chienluocvon[chienluocvon_index])
-                if (check === check2) {
+                if (check === check3) {
                     //  đúng dk
                     // vào lệnh
                     await delay(5000)
@@ -395,7 +395,7 @@ Chọn ${dudoan} ${soluong}</b>`, { parse_mode: 'HTML' })
                     }
                     break
                 }
-                if (check === check3) {
+                if (check === check2) {
                     //  đúng dk
                     // vào lệnh
                     await delay(5000)
@@ -1093,11 +1093,11 @@ async function xacdinhlichsu(gameslist, bot) {
 
         if (Number_one > 10) {
             //  số lớn
-            ketqua = "L"
+            ketqua2 = "L"
 
         } else {
             //  số nhỏ
-            ketqua = "N"
+            ketqua2 = "N"
         }
         total = total + ketqua;
         total2 = total2 + ketqua2;
