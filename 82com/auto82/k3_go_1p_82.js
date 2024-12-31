@@ -219,7 +219,7 @@ let data_group_cu = {}
 let data_group_cu_loinhuan = {}
 let data_index = {}
 let so_lenh_win = {}
-
+let so_lenh_thua = {}
 async function guitinnhantunggroup(gameslist, bot, total, issuenumber) {
     // console.log('total ', total)
     let list_group = await db('copytinhieu_k3g88').select('*').where('type', '1').andWhere("start", 1)
@@ -251,7 +251,12 @@ async function guitinnhantunggroup(gameslist, bot, total, issuenumber) {
                         } else {
                             data_index[group.id_group] = 1
                         }
-                        if (group.chuyenct > 0 && data_index[group.id_group] >= group.chuyenct) {
+                        if (so_lenh_thua[group.id_group]) {
+                            so_lenh_thua[group.id_group] = so_lenh_thua[group.id_group] + 1
+                        } else {
+                            so_lenh_thua[group.id_group] = 1
+                        }
+                        if (group.chuyenct > 0 && so_lenh_thua[group.id_group] >= group.chuyenct) {
                             console.log('doi cthuc thoi ', group.chuyenct)
                             doicongthuc = true
                         }
@@ -271,7 +276,7 @@ async function guitinnhantunggroup(gameslist, bot, total, issuenumber) {
                         }
 
                         data_index[group.id_group] = 0
-
+                        so_lenh_thua[group.id_group] = 0
                         bot.sendMessage(group.id_group, `🟢 <b>Win:
 Chốt lãi: ${data_group_cu_loinhuan[group.id_group]}</b>`, { parse_mode: 'HTML' })
                         if (group.winngung && data_group_cu_loinhuan[group.id_group] >= group.winngung) {
@@ -311,33 +316,41 @@ Cảm ơn các bạn đã theo dõi !</b>`, { parse_mode: 'HTML' })
                 //     gãy rồi
                 //  1 chuyển lên ct cao hơn
                 //  2 reset về rank
-
+                let dachuyen = true
                 if (current_cl == 10) {
                     // data_index[group.id_group] = 0
                     await db("copytinhieu_k3g88").update('chienluoc_hientai', 1).where('id', group.id)
                     // delete data_index[group.id_group]
+                    so_lenh_thua[group.id_group] = 0
                     delete data_group_cu[group.id_group]
-                    break
-                }
-                let rank_moi = current_cl + 1
-                let keymoi = "chienluocdata_" + rank_moi
+                    chienluoc = JSON.parse(group["chienluocdata_1"])
 
-                if (!group[keymoi] || group[keymoi] == "NONE") {
-                    //  chưa cài
-                    await db("copytinhieu_k3g88").update('chienluoc_hientai', 1).where('id', group.id)
-                    // delete data_index[group.id_group]
-                    delete data_group_cu[group.id_group]
-                    break
+                } else {
+                    let rank_moi = current_cl + 1
+                    let keymoi = "chienluocdata_" + rank_moi
 
+                    if (!group[keymoi] || group[keymoi] == "NONE") {
+                        //  chưa cài
+                        await db("copytinhieu_k3g88").update('chienluoc_hientai', 1).where('id', group.id)
+                        // delete data_index[group.id_group]
+                        so_lenh_thua[group.id_group] = 0
+                        chienluoc = JSON.parse(group["chienluocdata_1"])
+                        delete data_group_cu[group.id_group]
+                        
+
+                    } else {
+                        await db("copytinhieu_k3g88").update('chienluoc_hientai', rank_moi).where('id', group.id)
+                        // delete data_index[group.id_group]
+                        so_lenh_thua[group.id_group] = 0
+                        chienluoc = JSON.parse(group[keymoi])
+                        delete data_group_cu[group.id_group]
+                        
+                    }
                 }
-                await db("copytinhieu_k3g88").update('chienluoc_hientai', rank_moi).where('id', group.id)
-                // delete data_index[group.id_group]
-                // delete data_group_cu[group.id_group]
-                break
 
             }
             //     kiểm tra xem có trúng ko
-            console.log('chienluoc ', chienluoc ,total)
+            console.log('chienluoc ', chienluoc, total)
 
             for (let element of chienluoc) {
                 // 3L_N  2L2N_N
